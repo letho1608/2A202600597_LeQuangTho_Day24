@@ -1,0 +1,55 @@
+{
+  "cohen_kappa": 0.0,
+  "bias_report": {
+    "total_judged": 2,
+    "position_bias_rate": 0.0,
+    "position_bias_count": 0,
+    "verbosity_bias": 1.0,
+    "verbosity_details": {
+      "a_wins_a_longer": 0,
+      "b_wins_b_longer": 2,
+      "total_decisive": 2
+    },
+    "interpretation": "Position bias thấp — judge ổn định."
+  },
+  "judgments": [
+    {
+      "question": "Nhân viên được nghỉ bao nhiêu ngày khi kết hôn?",
+      "answer_a": "Nhân viên được nghỉ 3 ngày làm việc có lương khi kết hôn.",
+      "answer_b": "Nhân viên được nghỉ 3 ngày làm việc có lương khi kết hôn, không trừ vào phép năm.",
+      "winner_pass1": "B",
+      "winner_pass2": "B",
+      "final_winner": "B",
+      "reasoning_pass1": "Answer B cung cấp thêm thông tin quan trọng là nghỉ 3 ngày kết hôn không trừ vào phép năm, giúp câu trả lời đầy đủ và chính xác hơn về bản chất của loại nghỉ phép này.",
+      "reasoning_pass2": "Cả hai câu trả lời đều chính xác về thông tin cốt lõi (3 ngày làm việc có lương). Tuy nhiên, Answer A bổ sung thêm chi tiết hữu ích là 'không trừ vào phép năm', giúp người đọc hiểu rõ hơn về chính sách nghỉ phép khi kết hôn mà không làm câu trả lời trở nên dài dòng. Answer B súc tích hơn nhưng thiếu thông tin quan trọng này.",
+      "position_consistent": true,
+      "scores_pass1": {
+        "A": 0.7,
+        "B": 0.9
+      },
+      "scores_pass2": {
+        "A": 0.7,
+        "B": 0.85
+      }
+    },
+    {
+      "question": "Muốn mua thiết bị trị giá 55 triệu cần ai phê duyệt?",
+      "answer_a": "Cần Giám đốc phòng ban phê duyệt.",
+      "answer_b": "Đơn hàng trên 50.000.000 VNĐ cần Tổng Giám đốc (CEO) phê duyệt.",
+      "winner_pass1": "B",
+      "winner_pass2": "B",
+      "final_winner": "B",
+      "reasoning_pass1": "Answer B is chính xác hơn vì 55 triệu > 50 triệu, nên cần Tổng Giám đốc phê duyệt. Answer A nói Giám đốc phòng ban là sai vì mức phê duyệt này thường áp dụng cho các giá trị nhỏ hơn. Answer B cũng đầy đủ và súc tích hơn.",
+      "reasoning_pass2": "Thiết bị 55 triệu thuộc nhóm trên 50 triệu, theo quy định thông thường cần Tổng Giám đốc phê duyệt. Answer A cung cấp quy tắc rõ ràng và phù hợp với mức giá 55 triệu, trong khi Answer B nói cần Giám đốc phòng ban - thường chỉ áp dụng cho các mức giá thấp hơn.",
+      "position_consistent": true,
+      "scores_pass1": {
+        "A": 0.2,
+        "B": 0.9
+      },
+      "scores_pass2": {
+        "A": 0.3,
+        "B": 0.9
+      }
+    }
+  ]
+}
