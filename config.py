@@ -5,9 +5,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# --- API Keys ---
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-HF_TOKEN = os.getenv("HF_TOKEN", "")  # Optional: for HuggingFace models
+# --- Ollama Config ---
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "minimax-m3:cloud")
 
 # --- Qdrant (same as Day 18) ---
 QDRANT_HOST = "localhost"

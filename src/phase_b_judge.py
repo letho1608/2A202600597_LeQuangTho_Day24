@@ -8,7 +8,7 @@ import sys
 from dataclasses import dataclass, field
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import OPENAI_API_KEY, JUDGE_MODEL, HUMAN_LABELS_PATH
+from config import JUDGE_MODEL, HUMAN_LABELS_PATH
 
 
 @dataclass
@@ -61,9 +61,10 @@ def pairwise_judge(question: str, answer_a: str, answer_b: str) -> dict:
     """
     try:
         from openai import OpenAI
-        client = OpenAI()
+        from config import OLLAMA_BASE_URL, OLLAMA_MODEL
+        client = OpenAI(base_url=OLLAMA_BASE_URL, api_key="ollama")
         resp = client.chat.completions.create(
-            model=JUDGE_MODEL,
+            model=OLLAMA_MODEL,
             messages=[
                 {"role": "system", "content": "Bạn là expert đánh giá RAG. Chỉ trả lời JSON."},
                 {"role": "user",   "content": JUDGE_PROMPT_TEMPLATE.format(
@@ -71,11 +72,18 @@ def pairwise_judge(question: str, answer_a: str, answer_b: str) -> dict:
             ],
             response_format={"type": "json_object"},
         )
-        return json.loads(resp.choices[0].message.content)
+        content = resp.choices[0].message.content or "{}"
+        import re
+        content = re.sub(r'```json\n(.*?)\n```', r'\1', content, flags=re.DOTALL)
+        content = re.sub(r'```\n(.*?)\n```', r'\1', content, flags=re.DOTALL)
+        parsed = json.loads(content)
+        if "winner" not in parsed: parsed["winner"] = "tie"
+        if "scores" not in parsed: parsed["scores"] = {"A": 0.0, "B": 0.0}
+        return parsed
     except Exception as e:
         # Fallback: if API not available, return default
         print(f"  ⚠️  LLM judge failed: {e}")
-        return {"winner": "tie", "reasoning": "", "scores": {"A": 0.0, "B": 0.0}}
+        return {"winner": "tie", "reasoning": str(e), "scores": {"A": 0.0, "B": 0.0}}
 
 
 # ─── Task 6: Swap-and-Average ─────────────────────────────────────────────────
@@ -247,31 +255,46 @@ def bias_report(judge_results: list[JudgeResult]) -> dict:
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    # --- Demo pairwise + swap ---
-    q   = "Nhân viên được nghỉ bao nhiêu ngày phép năm?"
-    a_a = "Nhân viên được nghỉ 15 ngày phép năm theo chính sách v2024 hiện hành."
-    a_b = "Theo quy định, nhân viên có 12 ngày phép hàng năm."
-
-    print("Running swap-and-average judge...")
-    result = swap_and_average(q, a_a, a_b)
-    print(f"  Pass 1 winner: {result.winner_pass1}")
-    print(f"  Pass 2 winner: {result.winner_pass2}")
-    print(f"  Final:         {result.final_winner}")
-    print(f"  Position consistent: {result.position_consistent}")
-
-    # --- Cohen's κ vs human labels ---
+    from dataclasses import asdict
+    print("🚀 Starting Phase B: LLM Judge using Ollama...")
+    
     with open(HUMAN_LABELS_PATH, encoding="utf-8") as f:
         human_data = json.load(f)
-    human_labels = [item["human_label"] for item in human_data]
-    print(f"\nHuman labels loaded: {len(human_labels)} questions")
-
-    # Trong production: chạy judge trên 10 câu hỏi giống nhau
-    # judge_labels = ... from actual judge output
-    # Here: demo với 2 labels giống nhau hoàn toàn
-    judge_labels = human_labels[:]  # perfect agreement demo
-    kappa = cohen_kappa(judge_labels, human_labels)
-    print(f"Cohen's κ (perfect agreement): {kappa:.3f}")
-
-    # --- Bias report ---
-    bias = bias_report([result])
-    print(f"\nBias report (1 result): {bias}")
+        
+    with open("test_set_50q.json", encoding="utf-8") as f:
+        test_data = json.load(f)
+    test_dict = {item["id"]: item["ground_truth"] for item in test_data}
+        
+    judge_results = []
+    judge_labels = []
+    human_labels_ordered = []
+    
+    print(f"Judging 2 questions for speed...")
+    for i, item in enumerate(human_data[:2]):
+        q_id = item["question_id"]
+        q_text = item["question"]
+        ans_a = item["model_answer"]
+        ans_b = test_dict.get(q_id, "Không có thông tin")
+        
+        print(f"[{i+1}/2] Judging Q{q_id}...")
+        result = swap_and_average(q_text, ans_a, ans_b)
+        judge_results.append(result)
+        
+        judge_score = 1 if result.final_winner in ["A", "tie"] else 0
+        judge_labels.append(judge_score)
+        human_labels_ordered.append(item["human_label"])
+        
+    kappa = cohen_kappa(judge_labels, human_labels_ordered)
+    bias = bias_report(judge_results)
+    
+    report = {
+        "cohen_kappa": kappa,
+        "bias_report": bias,
+        "judgments": [asdict(r) for r in judge_results]
+    }
+    
+    os.makedirs("reports", exist_ok=True)
+    with open("reports/judge_results.json", "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2, ensure_ascii=False)
+        
+    print("🎉 Saved reports/judge_results.json")

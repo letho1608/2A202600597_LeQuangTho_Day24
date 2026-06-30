@@ -358,4 +358,20 @@ if __name__ == "__main__":
     print(f"\nLatency P95 — Presidio: {latency['presidio_ms']['p95']}ms | "
           f"NeMo: {latency['nemo_ms']['p95']}ms | "
           f"Total: {latency['total_ms']['p95']}ms")
-    print(f"Budget OK ({latency['budget_ms']}ms): {latency['latency_budget_ok']}")
+    # Save reports
+    passed = 0
+    if results:
+        passed = sum(1 for r in results if r["passed"])
+        
+    report = {
+        "adversarial_results": results,
+        "pass_rate": passed / len(results) if results else 0,
+        "latency_profile": latency
+    }
+    
+    import os
+    os.makedirs("reports", exist_ok=True)
+    with open("reports/guard_results.json", "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2, ensure_ascii=False)
+        
+    print("🎉 Saved reports/guard_results.json")
