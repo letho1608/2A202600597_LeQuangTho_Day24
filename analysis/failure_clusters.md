@@ -56,10 +56,10 @@
 
 | Metric yếu | Root cause | Suggested fix |
 |---|---|---|
-| faithfulness | LLM hallucinating | |
-| context_recall | Missing relevant chunks | |
-| context_precision | Too many irrelevant chunks | |
-| answer_relevancy | Answer doesn't match question | |
+| faithfulness | LLM hallucinating | Tighten system prompt, lower temperature |
+| context_recall | Missing relevant chunks | Improve chunking or add BM25 |
+| context_precision | Too many irrelevant chunks | Add reranking or metadata filter |
+| answer_relevancy | Answer doesn't match question | Improve prompt template |
 
 ---
 
